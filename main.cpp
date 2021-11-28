@@ -1,7 +1,26 @@
 #include <iostream>
 #include "Polinom.h"
 
+#include <windows.h>
+#include <signal.h>
+
+
+int memento()
+{
+    int a=0;
+    MessageBoxA(NULL,"Memento mori","POSIX Signal",NULL);
+    return 0;
+}
+
+void posix_death_signal(int signum)
+{
+    memento();
+    signal(signum, SIG_DFL);
+    exit(3);
+}
+
 int main() {
+    signal(SIGSEGV, posix_death_signal);
     using namespace std;
     Polynomial<double> instance = Polynomial<double>(1);
     instance.push_back(2);
@@ -27,4 +46,9 @@ int main() {
     std::cout << instance3.type() << std::endl;
     Polynomial<double> instance4 = instance.slice<-1, -3>();
     std::cout << instance4/2 << std::endl;
+    Polynomial pol = instance + instance4;
+    std::cout << "(" << instance << ")"  << "+" << "(" << instance4 << ")\n= " << pol << std::endl;
+    instance.resize(2);
+    Polynomial pol2 = instance * instance4;
+    std::cout << "(" << instance << ")"  << "*" << "(" << instance4 << ")\n= " << pol2 << std::endl;
 }

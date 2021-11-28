@@ -7,8 +7,6 @@
 
 #include "intrerfaces.h"
 
-
-
 template<class decimal = double>
 class Polynomial : public IDictionary<decimal, int>{
 private:
@@ -21,7 +19,7 @@ private:
     void resizeOnce() {
         if (data == nullptr) {
             data = new DATA[++number];
-            data[0].key = 1;
+            data[0].key = 0;
         } else {
             int k = MaxKey();
             data = (DATA *) realloc(data, ++number * sizeof(DATA));
@@ -45,14 +43,13 @@ public:
 
     Polynomial(const Polynomial&) = default;
 
-//    Polynomial(decimal value, ...) : Polynomial() {
-//        decimal * p = &value;
-//        int size = Size;
-//        while (size--) {
-//            Polynomial::push_back(*p);
-//            p++;
-//        }
-//    }
+    Polynomial* clone() {
+        auto * temp = new Polynomial();
+        for (int i = 0; i < Length(); ++i) {
+            temp->push_back(data[i].value, data[i].key);
+        }
+        return temp;
+    }
 
     [[maybe_unused]] Polynomial(const int num, decimal value) : Polynomial() {
         for (int i = 0; i < num; ++i) {
@@ -74,6 +71,7 @@ public:
     }
 
     int MaxKey() {
+        if (data == nullptr) return 0;
         int res = data[0].key;
         for (int i = 0; i < number; ++i) {
             if (res < data[i].key) {
@@ -113,7 +111,7 @@ public:
     }
 
     decimal operator[](const int index) const override{
-        return data[GetRealIndex(index)].value;
+        return data[GetRealIndex(index)].value;;
     }
 
     [[nodiscard]] int getKey(const int index) const override {
@@ -125,10 +123,15 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Polynomial<decimal> & other) {
-        for (int i = 0; i < other.Length() - 1; ++i) {
-            out << other[i] << "X^" << other.getKey(i) << " + ";
+        if (other.data == nullptr) {
+            out << "nullptr";
         }
-        out << other[-1] << "X^" << other.getKey(-1);
+        else {
+            for (int i = 0; i < other.Length() - 1; ++i) {
+                out << other[i] << "X^" << other.getKey(i) << " + ";
+            }
+            out << other[-1] << "X^" << other.getKey(-1);
+        }
         return out;
     }
 
@@ -157,6 +160,16 @@ public:
             data[i] = data[i + 1];
         }
         resize(number - 1);
+        if (number == 0) {
+            data = nullptr;
+        }
+    }
+
+    void popLast() {
+        resize(number - 1);
+        if (number == 0) {
+            data = nullptr;
+        }
     }
 
     template<int index1, int index2>
@@ -238,13 +251,72 @@ public:
         return 0;
     }
 
-    decimal getValueByDegree(int degree) {
+    decimal getValueByKey(int degree) {
         if (isExistKey(degree)) {
             return data[getIndexByDegree(degree)].value;
         }
         return 0;
     }
+
+    friend Polynomial operator+(Polynomial& polynomial1, Polynomial& polynomial2) {
+        Polynomial result = Polynomial();
+        int maxKey = (polynomial1.MaxKey() > polynomial2.MaxKey()) ? polynomial1.MaxKey() : polynomial2.MaxKey();
+        for (int i = 0; i <= maxKey; ++i) {
+            decimal tmp1 = polynomial1.getValueByKey(i);
+            decimal tmp2 = polynomial2.getValueByKey(i);
+            result.push_back(tmp1 + tmp2);
+        }
+        return result;
+    }
+
+    Polynomial& operator=(const Polynomial& other) {
+        delete[] data;
+        data = nullptr;
+        number = 0;
+        for (int i = 0; i < other.Length(); ++i) {
+            this->push_back(other[i], other.getKey(i));
+        }
+        return *this;
+    }
+
+    Polynomial& operator+=(Polynomial &other) {
+        Polynomial<decimal> temp = *this + other;
+        *this = temp;
+        return *this;
+    }
+
+
+    friend Polynomial operator*( Polynomial& polynomial1, Polynomial& polynomial2) {
+        Polynomial result = Polynomial();
+        for (int i = 0; i < polynomial1.Length(); ++i) {
+            for (int j = 0; j < polynomial2.Length(); ++j) {
+                Polynomial temp = Polynomial();
+                temp.push_back(
+                        polynomial1[i] * polynomial2[j],
+                        polynomial1.getKey(i) + polynomial2.getKey(j)
+                        );
+                result += temp;
+            }
+        }
+        return result;
+    }
 };
+
+//template <class T1, class T2>
+//Polynomial<T1> operator/(Polynomial<T1> pol1, Polynomial<T2> pol2) {
+//    Polynomial<double> temp =
+//    while(pol1.Length() > pol2.Length()) {
+//        pol1 = diff(pol1, pol2);
+//    }
+//    return pol1;
+//}
+//
+//template <class T1, class T2>
+//Polynomial<T1> diff(Polynomial<T1> pol1, Polynomial<T2> pol2) {
+//    while(!pol2.isEmpty()) {
+//
+//    }
+//}
 
 
 #endif //LBAB3_POLINOM_H
