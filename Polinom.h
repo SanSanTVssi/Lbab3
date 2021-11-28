@@ -60,22 +60,24 @@ public:
         }
     }
 
+    inline bool isEmpty() const { return data == nullptr; }
+
     void push_back(const decimal other, const int KEY = -1) override{
         resizeOnce();
-        data[number - 1] = other;
+        data[number - 1].value = other;
         if (KEY != -1) {
             if (!isExistKey(KEY))
             {
-                key[number - 1] = KEY;
+                data[number - 1].key = KEY;
             }
         }
     }
 
     int MaxKey() {
-        int res = key[0];
+        int res = data[0].key;
         for (int i = 0; i < number; ++i) {
-            if (res < key[i]) {
-                res = key[i];
+            if (res < data[i].key) {
+                res = data[i].key;
             }
         }
         return res;
@@ -92,16 +94,12 @@ public:
                 push_back(0.0);
             }
         } else if (new_size < number) {
-            auto *newArr = new decimal[new_size];
-            int *newkeys = new int[new_size];
+            auto *newArr = new DATA[new_size];
             for (int i = 0; i < new_size; ++i) {
                 newArr[i] = data[i];
-                newkeys[i] = key[i];
             }
             delete[] data;
-            delete[] key;
             data = newArr;
-            key = newkeys;
             number = new_size;
         }
     }
@@ -110,21 +108,20 @@ public:
         return number;
     }
 
-    [[nodiscard]] int GetRealIndex(const int index) const{
+    [[nodiscard]] inline int GetRealIndex(const int index) const{
         return (index >= 0) ? index : number + index;
     }
 
     decimal operator[](const int index) const override{
-        return data[GetRealIndex(index)];
+        return data[GetRealIndex(index)].value;
     }
 
     [[nodiscard]] int getKey(const int index) const override {
-        return key[GetRealIndex(index)];
+        return data[GetRealIndex(index)].key;
     }
 
     ~Polynomial() override{
         delete[] data;
-        delete[] key;
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Polynomial<decimal> & other) {
@@ -140,7 +137,7 @@ public:
         double result = 0;
         double y = x;
         for (int i = 0; i < number; ++i) {
-            result += y * data[i];
+            result += y * data[i].value;
             y *= x;
         }
         return result;
@@ -158,7 +155,6 @@ public:
     void pop(const int index) override{
         for (long i = index; i < number; ++i) {
             data[i] = data[i + 1];
-            key[i] = key[i + 1];
         }
         resize(number - 1);
     }
@@ -167,20 +163,20 @@ public:
     Polynomial slice() {
         int real_index1 = GetRealIndex(index1);
         int real_index2 = GetRealIndex(index2);
-        Polynomial newPolinomial = Polynomial();
+        Polynomial newPolynomial = Polynomial();
         if (real_index1 < real_index2) {
             for (int i = real_index1; i <= real_index2; ++i) {
-                newPolinomial.push_back(data[i]);
-                newPolinomial.key[i - real_index1] = key[i];
+                newPolynomial.push_back(data[i].value);
+                newPolynomial.data[i - real_index1].key = data[i].key;
             }
         }
         else {
             for (int i = real_index1, j = 0; i >= real_index2; --i, j++) {
-                newPolinomial.push_back(data[i]);
-                newPolinomial.key[j] = key[i];
+                newPolynomial.push_back(data[i].value);
+                newPolynomial.data[j].key = data[i].key;
             }
         }
-        return newPolinomial;
+        return newPolynomial;
     }
 
     int getDegree() { return MaxKey(); }
@@ -191,7 +187,7 @@ public:
     Polynomial operator+(Type value) {
         Polynomial newPol = Polynomial();
         for (int i = 0; i < number; ++i) {
-            newPol.push_back(data[i] + value);
+            newPol.push_back(data[i].value + value);
         }
         return newPol;
     }
@@ -200,7 +196,7 @@ public:
     Polynomial operator*(Type value) {
         Polynomial newPol = Polynomial();
         for (int i = 0; i < number; ++i) {
-            newPol.push_back(data[i] * value);
+            newPol.push_back(data[i].value * value);
         }
         return newPol;
     }
@@ -209,7 +205,7 @@ public:
     Polynomial operator-(Type value) {
         Polynomial newPol = Polynomial();
         for (int i = 0; i < number; ++i) {
-            newPol.push_back(data[i] - value);
+            newPol.push_back(data[i].value - value);
         }
         return newPol;
     }
@@ -218,14 +214,14 @@ public:
     Polynomial operator/(Type value) {
         Polynomial newPol = Polynomial();
         for (int i = 0; i < number; ++i) {
-            newPol.push_back(data[i] / value);
+            newPol.push_back(data[i].value / value);
         }
         return newPol;
     }
 
     bool isExistKey(int degree) {
         for (int i = 0; i < number; ++i) {
-            if (key[i] == degree) {
+            if (data[i].key == degree) {
                 return true;
             }
         }
@@ -235,7 +231,7 @@ public:
 
     int getIndexByDegree(int degree) {
         for (int i = 0; i < number; ++i) {
-            if (key[i] == degree) {
+            if (data[i].key == degree) {
                 return i;
             }
         }
@@ -244,7 +240,7 @@ public:
 
     decimal getValueByDegree(int degree) {
         if (isExistKey(degree)) {
-            return data[getIndexByDegree(degree)];
+            return data[getIndexByDegree(degree)].value;
         }
         return 0;
     }

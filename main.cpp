@@ -18,15 +18,13 @@ int main() {
     cout << instance << endl;
     cout << instance[-1] << endl;
     cout << instance[-2] << endl;
-    auto inc = instance + instance.convert<float>();
-    cout << inc << endl;
 
-//    Polynomial<int> instance2 = Polynomial<int>(instance);
-//    instance2.resize(3);
-//    cout << instance2 << endl;
-//    cout << instance2(4) << endl;
-//    Polynomial<float> instance3 = instance2.convert<float>();
-//    std::cout << instance3.type() << std::endl;
-//    Polynomial<double> instance4 = instance.slice<-1, -3>();
-//    std::cout << instance4/2 << std::endl;
+    Polynomial<int> instance2 = Polynomial<int>(instance);
+    instance2.resize(3);
+    cout << instance2 << endl;
+    cout << instance2(4) << endl;
+    Polynomial<float> instance3 = instance2.convert<float>();
+    std::cout << instance3.type() << std::endl;
+    Polynomial<double> instance4 = instance.slice<-1, -3>();
+    std::cout << instance4/2 << std::endl;
 }
