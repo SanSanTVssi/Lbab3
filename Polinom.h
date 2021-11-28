@@ -21,9 +21,7 @@ private:
             data = new DATA[++number];
             data[0].key = 0;
         } else {
-            int k = MaxKey();
             data = (DATA *) realloc(data, ++number * sizeof(DATA));
-            data[number - 1].key = k + 1;
         }
     }
 
@@ -41,15 +39,7 @@ public:
         }
     }
 
-    Polynomial(const Polynomial&) = default;
-
-    Polynomial* clone() {
-        auto * temp = new Polynomial();
-        for (int i = 0; i < Length(); ++i) {
-            temp->push_back(data[i].value, data[i].key);
-        }
-        return temp;
-    }
+   // Polynomial(const Polynomial&) = default;
 
     [[maybe_unused]] Polynomial(const int num, decimal value) : Polynomial() {
         for (int i = 0; i < num; ++i) {
@@ -60,11 +50,15 @@ public:
     inline bool isEmpty() const { return data == nullptr; }
 
     void push_back(const decimal other, const int KEY = -1) override{
-        resizeOnce();
-        data[number - 1].value = other;
-        if (KEY != -1) {
-            if (!isExistKey(KEY))
-            {
+        if (isExistKey(KEY)) {
+            data[getIndexByKey(KEY)].value += other;
+        }
+        else {
+            int k = MaxKey();
+            resizeOnce();
+            data[number - 1].value = other;
+            data[number - 1].key = k + 1;
+            if (KEY != -1) {
                 data[number - 1].key = KEY;
             }
         }
@@ -242,9 +236,9 @@ public:
     }
 
 
-    int getIndexByDegree(int degree) {
+    int getIndexByKey(int key) {
         for (int i = 0; i < number; ++i) {
-            if (data[i].key == degree) {
+            if (data[i].key == key) {
                 return i;
             }
         }
@@ -253,18 +247,26 @@ public:
 
     decimal getValueByKey(int degree) {
         if (isExistKey(degree)) {
-            return data[getIndexByDegree(degree)].value;
+            return data[getIndexByKey(degree)].value;
         }
         return 0;
     }
 
+    /**
+     * Method for addition polynomial
+     * @param polynomial1
+     * @param polynomial2
+     * @return result of addition
+     */
     friend Polynomial operator+(Polynomial& polynomial1, Polynomial& polynomial2) {
+        // Polynomial for result
         Polynomial result = Polynomial();
+        // Chose max degree of two polynomials
         int maxKey = (polynomial1.MaxKey() > polynomial2.MaxKey()) ? polynomial1.MaxKey() : polynomial2.MaxKey();
+        // We need add all coefficient from 0 (the least  coefficient) to Max degree
+        // If value by degree is not exist then the result is 0
         for (int i = 0; i <= maxKey; ++i) {
-            decimal tmp1 = polynomial1.getValueByKey(i);
-            decimal tmp2 = polynomial2.getValueByKey(i);
-            result.push_back(tmp1 + tmp2);
+            result.push_back(polynomial1.getValueByKey(i) + polynomial2.getValueByKey(i));
         }
         return result;
     }
@@ -285,16 +287,28 @@ public:
         return *this;
     }
 
-
+    /**
+     * Method for multiply Polynomials
+     * @param polynomial1
+     * @param polynomial2
+     * @return multiplied polynomial
+     */
     friend Polynomial operator*( Polynomial& polynomial1, Polynomial& polynomial2) {
+        // Polynomial for result.
         Polynomial result = Polynomial();
+        // Chose first item from Polynomial1 and multiplied his on the all items from polynomial2.
+        // Loop for chose regular item from Polynomial1.
         for (int i = 0; i < polynomial1.Length(); ++i) {
+            // Loop for chose regular item from Polynomial2.
             for (int j = 0; j < polynomial2.Length(); ++j) {
+                // Polynomial1 for write into result of multiplied of item from Polynomial1[i] to item from polynomial2[j].
                 Polynomial temp = Polynomial();
+                // Multiply.
                 temp.push_back(
                         polynomial1[i] * polynomial2[j],
                         polynomial1.getKey(i) + polynomial2.getKey(j)
                         );
+                // Add temp into result.
                 result += temp;
             }
         }
