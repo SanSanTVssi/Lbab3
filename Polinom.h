@@ -35,11 +35,15 @@ public:
     template<typename otherType>
     explicit Polynomial(const Polynomial<otherType>& other) : Polynomial() {
         for (int i = 0; i < other.Length(); ++i) {
-            Polynomial::push_back(static_cast<decimal>(other[i]));
+            Polynomial::push_back(static_cast<decimal>(other[i]), other.getKey(i));
         }
     }
 
-   // Polynomial(const Polynomial&) = default;
+    Polynomial(const Polynomial& other): Polynomial() {
+       for (int i = 0; i < other.Length(); ++i) {
+           Polynomial::push_back(other[i], other.getKey(i));
+       }
+    }
 
     [[maybe_unused]] Polynomial(const int num, decimal value) : Polynomial() {
         for (int i = 0; i < num; ++i) {
@@ -65,7 +69,7 @@ public:
     }
 
     int MaxKey() {
-        if (data == nullptr) return 0;
+        if (data == nullptr) return -1;
         int res = data[0].key;
         for (int i = 0; i < number; ++i) {
             if (res < data[i].key) {
@@ -149,17 +153,14 @@ public:
         return typeid(decimal).name();
     }
 
-    void pop(const int index) override{
+    void pop(const int degree) override{
+        popByIndex(getIndexByKey(degree));
+    }
+
+    void popByIndex(const int index) {
         for (long i = index; i < number; ++i) {
             data[i] = data[i + 1];
         }
-        resize(number - 1);
-        if (number == 0) {
-            data = nullptr;
-        }
-    }
-
-    void popLast() {
         resize(number - 1);
         if (number == 0) {
             data = nullptr;
@@ -271,6 +272,25 @@ public:
         return result;
     }
 
+    /**
+    * Method for addition polynomial
+    * @param polynomial1
+    * @param polynomial2
+    * @return result of addition
+    */
+    friend Polynomial operator-(Polynomial& polynomial1, Polynomial& polynomial2) {
+        // Polynomial for result
+        Polynomial result = Polynomial();
+        // Chose max degree of two polynomials
+        int maxKey = (polynomial1.MaxKey() > polynomial2.MaxKey()) ? polynomial1.MaxKey() : polynomial2.MaxKey();
+        // We need add all coefficient from 0 (the least  coefficient) to Max degree
+        // If value by degree is not exist then the result is 0
+        for (int i = 0; i <= maxKey; ++i) {
+            result.push_back(polynomial1.getValueByKey(i) - polynomial2.getValueByKey(i));
+        }
+        return result;
+    }
+
     Polynomial& operator=(const Polynomial& other) {
         delete[] data;
         data = nullptr;
@@ -314,23 +334,29 @@ public:
         }
         return result;
     }
+
+    friend Polynomial operator/( Polynomial& polynomial1, Polynomial& polynomial2) {
+        Polynomial numerator = polynomial1;
+        Polynomial denominator = polynomial2;
+        Polynomial result = Polynomial();
+
+        int maxNumDeg, maxDenDeg;
+        while ((maxNumDeg = numerator.MaxKey()) >= (maxDenDeg = denominator.MaxKey())) {
+            decimal val1 = numerator.getValueByKey(maxNumDeg);
+            decimal val2 = denominator.getValueByKey(maxDenDeg);
+
+            Polynomial tmp = Polynomial();
+            tmp.push_back(val1/val2, maxNumDeg - maxDenDeg);
+            Polynomial tmp2 = tmp * denominator;
+            Polynomial tmp3 = numerator - tmp2;
+            numerator = tmp3;
+            numerator.pop(maxNumDeg);
+            result += tmp;
+        }
+        return result;
+    }
 };
 
-//template <class T1, class T2>
-//Polynomial<T1> operator/(Polynomial<T1> pol1, Polynomial<T2> pol2) {
-//    Polynomial<double> temp =
-//    while(pol1.Length() > pol2.Length()) {
-//        pol1 = diff(pol1, pol2);
-//    }
-//    return pol1;
-//}
-//
-//template <class T1, class T2>
-//Polynomial<T1> diff(Polynomial<T1> pol1, Polynomial<T2> pol2) {
-//    while(!pol2.isEmpty()) {
-//
-//    }
-//}
 
 
 #endif //LBAB3_POLINOM_H

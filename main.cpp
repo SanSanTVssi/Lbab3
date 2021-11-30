@@ -1,6 +1,5 @@
 #include <iostream>
 #include "Polinom.h"
-
 #include <windows.h>
 #include <signal.h>
 
@@ -33,7 +32,7 @@ int main() {
     instance.push_back(3);
     instance.push_back(4.5);
     instance.push_back(5);
-    instance.pop(1);
+    instance.pop(2);
     cout << instance << endl;
     cout << instance[-1] << endl;
     cout << instance[-2] << endl;
@@ -51,4 +50,12 @@ int main() {
     instance.resize(2);
     Polynomial pol2 = instance * instance4;
     std::cout << "(" << instance << ")"  << "*" << "(" << instance4 << ")\n= " << pol2 << std::endl;
+
+    cout << "========================" << endl;
+    std::cout << "(" << instance4 << ")"  << "/" << "(" << instance << ") = " << endl;
+    Polynomial pol3 = instance4 / instance;
+    cout <<  pol3 << std::endl;
+
+    int x;
+    cin >> x;
 }
