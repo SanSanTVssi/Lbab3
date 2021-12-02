@@ -7,7 +7,7 @@
 int memento()
 {
     int a=0;
-    MessageBoxA(NULL,"Memento mori","POSIX Signal",NULL);
+    MessageBoxA(nullptr,"Memento mori","POSIX Signal",0);
     return 0;
 }
 
@@ -48,6 +48,8 @@ int main() {
     Polynomial pol = instance + instance4;
     std::cout << "(" << instance << ")"  << "+" << "(" << instance4 << ")\n= " << pol << std::endl;
     instance.resize(2);
+    pol = instance - instance4;
+    std::cout << "(" << instance << ")"  << "-" << "(" << instance4 << ")\n= " << pol << std::endl;
     Polynomial pol2 = instance * instance4;
     std::cout << "(" << instance << ")"  << "*" << "(" << instance4 << ")\n= " << pol2 << std::endl;
 
